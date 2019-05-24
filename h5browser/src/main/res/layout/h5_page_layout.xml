@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#ffffff" >
+
+    <!-- title bar -->
+    <RelativeLayout
+        android:id="@+id/h5_page_title_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/lockscreen_h5_page_toolbar_height"
+        android:background="#333333" >
+
+        <LinearLayout
+            android:id="@+id/h5_page_quit_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/public_left_arrow_supprt_rtl"
+                android:layout_marginStart="@dimen/lockscreen_h5_page_margin"
+                android:layout_marginEnd="@dimen/lockscreen_h5_page_back_tv_margin_left"/>
+
+            <TextView
+                android:text="@string/lockscreen_h5_back_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18dp"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/h5_page_close_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:gravity="center_vertical"
+            android:visibility="gone" >
+
+            <TextView
+                android:text="@string/lockscreen_h5_close_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18dp"
+                android:textColor="#ffffff"
+                android:layout_marginStart="@dimen/lockscreen_h5_page_margin"
+                android:layout_marginEnd="@dimen/lockscreen_h5_page_margin"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:id="@+id/h5_page_content_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/h5_page_bottom_bar_tmp_layout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/lockscreen_h5_page_toolbar_height"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_alignParentBottom="true" />
+
+            <!-- webView container-->
+            <apf.plugin.h5.CustomWebView
+                android:id="@+id/h5_page_webview_container"
+                android:layout_above="@id/h5_page_bottom_bar_tmp_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layerType="hardware"
+                android:orientation="vertical" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/h5_page_empty_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="@dimen/lockscreen_h5_page_toolbar_height"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:gravity="center" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/public_wifi_flag" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/lockscreen_h5_page_refresh_tv_margin_top"
+                android:text="@string/lockscreen_h5_refresh_tip"
+                android:textColor="#cacaca"
+                android:textSize="15dp" />
+
+            <Button
+                android:id="@+id/h5_page_refresh_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/lockscreen_h5_page_refresh_btn_margin_top"
+                android:background="@drawable/refresh_btn_selector"
+                android:text="@string/lockscreen_h5_refresh_btn_tv"
+                android:textColor="#333333"
+                android:textSize="12dp" />
+        </LinearLayout>
+
+        <!-- bottom bar -->
+        <RelativeLayout
+            android:id="@+id/h5_page_bottom_bar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/lockscreen_h5_page_toolbar_height"
+            android:layout_gravity="bottom"
+            android:background="#333333"
+            android:layout_alignParentBottom="true" >
+
+            <LinearLayout
+                android:id="@+id/h5_page_back_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical" >
+
+                <ImageView
+                    android:id="@+id/h5_page_prev_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/lockscreen_h5_page_margin"
+                    android:layout_marginEnd="@dimen/lockscreen_h5_page_btn_margin" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/h5_page_forward_layout"
+                android:layout_toEndOf="@id/h5_page_back_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical" >
+
+                <ImageView
+                    android:id="@+id/h5_page_next_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/lockscreen_h5_page_btn_margin"
+                    android:layout_marginEnd="@dimen/lockscreen_h5_page_btn_margin" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/h5_page_refresh_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:layout_alignParentEnd="true" >
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/h5_page_refresh_btn_supprt_rtl"
+                    android:layout_marginStart="@dimen/lockscreen_h5_page_btn_margin"
+                    android:layout_marginEnd="@dimen/lockscreen_h5_page_btn_margin" />
+            </LinearLayout>
+        </RelativeLayout>
+    </FrameLayout>
+</LinearLayout>

@@ -1,4 +1,4 @@
-package test.android.osdownloads;
+package test.android.h5browser;
 
 import android.app.Application;
 

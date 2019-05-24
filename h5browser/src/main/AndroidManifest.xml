@@ -6,6 +6,38 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application>
-        <activity android:name=".H5Activity"/>
+        <activity
+            android:name=".H5Activity"
+            android:label="H5Activity">
+            <intent-filter>
+                <action android:name="tools.android.h5browser.launch_action" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="launch"
+                    android:pathPrefix="/h5"
+                    android:scheme="h5br" />
+                <!-- 調起命令 -->
+                <!-- adb shell am start -a android.intent.action.VIEW -d h5br://launch/h5 -->
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="launch"
+                    android:scheme="h5br" />
+                <!-- 調起命令 -->
+                <!-- adb shell am start -a android.intent.action.VIEW -d h5br://launch -->
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

@@ -1,0 +1,10 @@
+<resources>
+    <!-- h5br -->
+    <dimen name="h5br_page_titlebar_height">60dp</dimen>
+    <dimen name="h5br_page_back_tv_margin_left">10dp</dimen>
+    <dimen name="h5br_page_toolbar_height">43.3dp</dimen>
+    <dimen name="h5br_page_margin">15dp</dimen>
+    <dimen name="h5br_page_btn_margin">13.4dp</dimen>
+    <dimen name="h5br_page_refresh_tv_margin_top">16.7dp</dimen>
+    <dimen name="h5br_page_refresh_btn_margin_top">33.3dp</dimen>
+</resources>

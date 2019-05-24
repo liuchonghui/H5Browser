@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:src="@mipmap/public_left_arrow"
+    android:src="@mipmap/h5br_public_left_arrow"
     android:autoMirrored="true"
     />
 

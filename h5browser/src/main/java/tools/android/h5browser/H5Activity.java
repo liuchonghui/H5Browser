@@ -1,7 +1,6 @@
 package tools.android.h5browser;
 
 import android.app.Activity;
-import android.compact.utils.IntentCompactUtil;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -9,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,13 +18,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import apf.plugin.h5.CustomWebChromeClient;
-import apf.plugin.h5.CustomWebView;
-import apf.plugin.h5.CustomWebViewClient;
+import tools.android.h5browser.h5.CustomWebChromeClient;
+import tools.android.h5browser.h5.CustomWebView;
+import tools.android.h5browser.h5.CustomWebViewClient;
 
 public class H5Activity extends Activity {
     private LinearLayout mQuitLayout;
@@ -47,33 +41,35 @@ public class H5Activity extends Activity {
     private boolean mReceivedError;
 
     AsyncTask<Void, Void, Integer> mTast;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
 
-        setContentView(R.layout.h5_page_layout);
+        setContentView(R.layout.h5br_page_layout);
 
         initViews();
         initWebView();
     }
 
     private void initViews() {
-        mQuitLayout = (LinearLayout) findViewById(R.id.h5_page_quit_layout);
-        mBackLayout = (LinearLayout) findViewById(R.id.h5_page_back_layout);
-        mForwardLayout = (LinearLayout) findViewById(R.id.h5_page_forward_layout);
-        mRefreshLayout = (LinearLayout) findViewById(R.id.h5_page_refresh_layout);
-        mWebView = (CustomWebView) findViewById(R.id.h5_page_webview_container);
-        mToolbarTmpLayout = (LinearLayout) findViewById(R.id.h5_page_bottom_bar_tmp_layout);
-        mCloseBtnLayout = (LinearLayout) findViewById(R.id.h5_page_close_layout);
-        mContentLayout = (RelativeLayout) findViewById(R.id.h5_page_content_layout);
-        mEmptyLayout = (LinearLayout) findViewById(R.id.h5_page_empty_layout);
-        mRefreshBtn = (Button) findViewById(R.id.h5_page_refresh_btn);
+        mQuitLayout = (LinearLayout) findViewById(R.id.h5br_page_quit_layout);
+        mBackLayout = (LinearLayout) findViewById(R.id.h5br_page_back_layout);
+        mForwardLayout = (LinearLayout) findViewById(R.id.h5br_page_forward_layout);
+        mRefreshLayout = (LinearLayout) findViewById(R.id.h5br_page_refresh_layout);
+        mWebView = (CustomWebView) findViewById(R.id.h5br_page_webview_container);
+        mToolbarTmpLayout = (LinearLayout) findViewById(R.id.h5br_page_bottom_bar_tmp_layout);
+        mCloseBtnLayout = (LinearLayout) findViewById(R.id.h5br_page_close_layout);
+        mContentLayout = (RelativeLayout) findViewById(R.id.h5br_page_content_layout);
+        mEmptyLayout = (LinearLayout) findViewById(R.id.h5br_page_empty_layout);
+        mRefreshBtn = (Button) findViewById(R.id.h5br_page_refresh_btn);
         mRefreshBtn.setOnClickListener(mRetryListener);
-        mPrevImg = (ImageView) findViewById(R.id.h5_page_prev_btn);
-        mNextImg = (ImageView) findViewById(R.id.h5_page_next_btn);
+        mPrevImg = (ImageView) findViewById(R.id.h5br_page_prev_btn);
+        mNextImg = (ImageView) findViewById(R.id.h5br_page_next_btn);
 
         mQuitLayout.setOnClickListener(mQuitListener);
         mCloseBtnLayout.setOnClickListener(mCloseListener);
@@ -158,89 +154,17 @@ public class H5Activity extends Activity {
     private void updateStatus() {
         if (null != mWebView) {
             if (mWebView.canGoBack()) {
-                mPrevImg.setImageResource(R.drawable.h5_page_back_btn_supprt_rtl);
+                mPrevImg.setImageResource(R.drawable.h5br_page_back_btn_supprt_rtl);
             } else {
-                mPrevImg.setImageResource(R.drawable.h5_page_back_btn_pressed_supprt_rtl);
+                mPrevImg.setImageResource(R.drawable.h5br_page_back_btn_pressed_supprt_rtl);
             }
 
             if (mWebView.canGoForward()) {
-                mNextImg.setImageResource(R.drawable.h5_page_forward_btn_supprt_rtl);
+                mNextImg.setImageResource(R.drawable.h5br_page_forward_btn_supprt_rtl);
             } else {
-                mNextImg.setImageResource(R.drawable.h5_page_forward_btn_pressed_supprt_rtl);
+                mNextImg.setImageResource(R.drawable.h5br_page_forward_btn_pressed_supprt_rtl);
             }
         }
-    }
-
-    interface CheckUrlCallback {
-        void onCheckUrlCallback(Integer resCode, String url);
-    }
-
-    private CheckUrlCallback callback = new CheckUrlCallback() {
-        @Override
-        public void onCheckUrlCallback(Integer result, String resultUrl) {
-            if (result != 200) {
-                Log.d("PPP", "result != 200  handleFailed");
-                handleFailed();
-            } else {
-                Log.d("PPP", "showContent  loadUrl|" + resultUrl);
-                showContent();
-                loadUrl(resultUrl);
-            }
-        }
-    };
-
-    private void checkWebViewUrl(final String url) {
-        mTast = new CheckUrlTask(url, callback);
-        mTast.execute();
-    }
-
-    static class CheckUrlTask extends AsyncTask<Void, Void, Integer> {
-        WeakReference<CheckUrlCallback> mCallback;
-        String mCheckUrl;
-
-        public CheckUrlTask(String url, CheckUrlCallback callback) {
-            mCallback = new WeakReference<CheckUrlCallback>(callback);
-            mCheckUrl = url;
-        }
-
-        String url302 = null;
-        @Override
-        protected Integer doInBackground(Void... params) {
-            int responseCode = -1;
-            try {
-                URL url = new URL(mCheckUrl);
-                do {
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setInstanceFollowRedirects(false);
-                    connection.setUseCaches(false);
-                    connection.connect();
-                    responseCode = connection.getResponseCode();
-                    url302 = connection.getHeaderField("Location");
-                    if(TextUtils.isEmpty(url302)){
-                        url302 = connection.getHeaderField("location");
-                    }
-                    url = new URL(url302);
-                }while (responseCode == 301 || responseCode == 302);
-            } catch (Exception e) {
-
-            }
-            return responseCode;
-        }
-
-        @Override
-        protected void onPostExecute(Integer resCode) {
-            if (mCallback.get() != null) {
-                if (!TextUtils.isEmpty(url302)) {
-                    mCallback.get().onCheckUrlCallback(resCode, url302);
-                } else {
-                    mCallback.get().onCheckUrlCallback(resCode, mCheckUrl);
-                }
-            }
-        }
-    }
-
-    Activity getActivity() {
-        return this;
     }
 
     private CustomWebViewClient.IWebViewNotifyListener mWebViewNotifyListener = new CustomWebViewClient.IWebViewNotifyListener() {
@@ -356,7 +280,7 @@ public class H5Activity extends Activity {
                 mWebView = null;
             }
 
-            if(null != mTast){
+            if (null != mTast) {
                 mTast.cancel(true);
             }
         } catch (Exception e) {

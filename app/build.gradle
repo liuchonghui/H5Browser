@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion buildConfig.compileSdkVersion
     defaultConfig {
-        applicationId "test.android.osdownloads"
+        applicationId "test.android.h5browser"
         minSdkVersion buildConfig.minSdkVersion
         targetSdkVersion buildConfig.targetSdkVersion
         versionCode 1
@@ -26,8 +26,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-//    implementation project(':osdownloads')
-    implementation 'tools.android:osdownloads:0.1.0'
+    implementation project(':h5browser')
     implementation "com.android.support:appcompat-v7:${buildConfig.supportLibVersion}"
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 }

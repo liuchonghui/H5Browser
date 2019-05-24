@@ -31,6 +31,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'tools.android:utils:1.1.4'
 }
 
 apply from: '../install.gradle'

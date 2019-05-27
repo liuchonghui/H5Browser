@@ -1,8 +1,7 @@
 
 Compile:
 ```
-implementation 'tools.android:h5browser:0.0.1'
-implementation 'tools.android:utils:1.1.4'
+implementation 'tools.android:h5browser:0.1.1'
 ```
 Usage:
 ```

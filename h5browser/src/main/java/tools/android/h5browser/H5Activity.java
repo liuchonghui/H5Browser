@@ -1,10 +1,9 @@
 package tools.android.h5browser;
 
 import android.app.Activity;
+import android.compact.utils.IntentCompactUtil;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -39,8 +38,6 @@ public class H5Activity extends Activity {
     private CustomWebViewClient mWebViewClient;
 
     private boolean mReceivedError;
-
-    AsyncTask<Void, Void, Integer> mTast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,36 +90,16 @@ public class H5Activity extends Activity {
         loadH5();
     }
 
-    private String getSegment(Bundle extra, String key) {
-        String extraString = null;
-        if (extra != null) {
-            extraString = extra.getString(key);
-        }
-        return extraString;
-    }
-
-    private String getSegmentAnyWay(Uri uri, Bundle extra, String key) {
-        String extraString = null;
-        if (uri != null) {
-            extraString = uri.getQueryParameter(key);
-        }
-        if (extraString == null || extraString.length() == 0) {
-            extraString = getSegment(extra, key);
-        }
-        return extraString;
-    }
-
     private void loadH5() {
         try {
-            Intent intent = getIntent();
-            String url = getSegmentAnyWay(intent.getData(), intent.getExtras(), "url");
+            final String url = IntentCompactUtil.getSegment(getIntent(), "url");
             if (!TextUtils.isEmpty(url)) {
                 showContent();
                 loadUrl(url);
                 return;
+            } else {
+                handleFailed();
             }
-
-            handleFailed();
         } catch (Exception e) {
             handleFailed();
         }
@@ -278,10 +255,6 @@ public class H5Activity extends Activity {
                 ((ViewGroup) mWebView.getParent()).removeView(mWebView);
                 mWebView.destroy();
                 mWebView = null;
-            }
-
-            if (null != mTast) {
-                mTast.cancel(true);
             }
         } catch (Exception e) {
             e.printStackTrace();

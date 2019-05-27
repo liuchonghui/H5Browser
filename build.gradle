@@ -10,8 +10,8 @@ buildscript {
     ]
 
     ext.buildVersion = [
-            'versionCode': 1,
-            'versionName': '0.0.1',
+            'versionCode': 4,
+            'versionName': '0.1.1',
     ]
 
     repositories {
@@ -32,8 +32,8 @@ allprojects {
         jcenter()
         google()
 // enable when test
-        maven {
-            url 'https://dl.bintray.com/liuchonghui/maven/'
-        }
+//        maven {
+//            url 'https://dl.bintray.com/liuchonghui/maven/'
+//        }
     }
 }

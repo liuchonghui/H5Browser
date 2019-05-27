@@ -1,5 +1,6 @@
 package tools.android.h5browser;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -12,15 +13,30 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+import com.tencent.sonic.sdk.SonicCacheInterceptor;
+import com.tencent.sonic.sdk.SonicConfig;
+import com.tencent.sonic.sdk.SonicEngine;
+import com.tencent.sonic.sdk.SonicSession;
+import com.tencent.sonic.sdk.SonicSessionConfig;
+import com.tencent.sonic.sdk.SonicSessionConnection;
+import com.tencent.sonic.sdk.SonicSessionConnectionInterceptor;
 
 import tools.android.h5browser.h5.CustomWebChromeClient;
 import tools.android.h5browser.h5.CustomWebView;
 import tools.android.h5browser.h5.CustomWebViewClient;
+import tools.android.h5browser.sonic.SonicRuntimeImpl;
+import tools.android.h5browser.sonic.SonicSessionClientImpl;
 
 public class H5Activity extends Activity {
     private LinearLayout mQuitLayout;
@@ -42,6 +58,10 @@ public class H5Activity extends Activity {
 
     AsyncTask<Void, Void, Integer> mTast;
 
+    private SonicSession sonicSession;
+    private String url;
+    private SonicSessionClientImpl sonicSessionClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,10 +70,35 @@ public class H5Activity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
 
+        url = getSegmentAnyWay(getIntent().getData(), getIntent().getExtras(), "url");
+        initTencentSonic();
+
         setContentView(R.layout.h5br_page_layout);
 
         initViews();
         initWebView();
+
+    }
+
+    private void initTencentSonic() {
+        if (!SonicEngine.isGetInstanceAllowed()) {
+            SonicEngine.createInstance(new SonicRuntimeImpl(getApplication()), new SonicConfig.Builder().build());
+        }
+
+        SonicSessionConfig.Builder sessionConfigBuilder = new SonicSessionConfig.Builder();
+        sessionConfigBuilder.setSupportLocalServer(true);
+
+        // create sonic session and run sonic flow
+        sonicSession = SonicEngine.getInstance().createSession(url, sessionConfigBuilder.build());
+        if (null != sonicSession) {
+            sonicSession.bindClient(sonicSessionClient = new SonicSessionClientImpl());
+        } else {
+            // this only happen when a same sonic session is already running,
+            // u can comment following codes to feedback as a default mode.
+            // throw new UnknownError("create session fail!");
+            Toast.makeText(this, "create sonic session fail!", Toast.LENGTH_LONG).show();
+            throw new UnknownError("create session fail!");
+        }
     }
 
     private void initViews() {
@@ -82,15 +127,61 @@ public class H5Activity extends Activity {
     }
 
     private void initWebView() {
-        mWebViewClient = new CustomWebViewClient(this.getApplicationContext());
-        mWebViewClient.setNotifyListener(mWebViewNotifyListener);
-        CustomWebChromeClient webChromeClient = new CustomWebChromeClient(mWebView);
-        mWebView.setWebChromeClient(webChromeClient);
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             mWebView.setBackgroundColor(0x00000000);
         }
-        mWebView.setWebViewClient(mWebViewClient);
-        loadH5();
+
+        mWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                if (sonicSession != null) {
+                    sonicSession.getSessionClient().pageFinish(url);
+                }
+            }
+
+            @TargetApi(21)
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return shouldInterceptRequest(view, request.getUrl().toString());
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                if (sonicSession != null) {
+                    return (WebResourceResponse) sonicSession.getSessionClient().requestResource(url);
+                }
+                return null;
+            }
+        });
+
+        WebSettings webSettings = mWebView.getSettings();
+
+        // add java script interface
+        // note:if api level lower than 17(android 4.2), addJavascriptInterface has security
+        // issue, please use x5 or see https://developer.android.com/reference/android/webkit/
+        // WebView.html#addJavascriptInterface(java.lang.Object, java.lang.String)
+        webSettings.setJavaScriptEnabled(true);
+        mWebView.removeJavascriptInterface("searchBoxJavaBridge_");
+
+        // init webview settings
+        webSettings.setAllowContentAccess(true);
+        webSettings.setDatabaseEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setAppCacheEnabled(true);
+        webSettings.setSavePassword(false);
+        webSettings.setSaveFormData(false);
+        webSettings.setUseWideViewPort(true);
+        webSettings.setLoadWithOverviewMode(true);
+
+
+        // webview is ready now, just tell session client to bind
+        if (sonicSessionClient != null) {
+            sonicSessionClient.bindWebView(mWebView);
+            sonicSessionClient.clientReady();
+        } else { // default mode
+            mWebView.loadUrl(url);
+        }
     }
 
     private String getSegment(Bundle extra, String key) {
@@ -112,22 +203,6 @@ public class H5Activity extends Activity {
         return extraString;
     }
 
-    private void loadH5() {
-        try {
-            Intent intent = getIntent();
-            String url = getSegmentAnyWay(intent.getData(), intent.getExtras(), "url");
-            if (!TextUtils.isEmpty(url)) {
-                showContent();
-                loadUrl(url);
-                return;
-            }
-
-            handleFailed();
-        } catch (Exception e) {
-            handleFailed();
-        }
-    }
-
     private void handleFailed() {
         mContentLayout.setVisibility(View.GONE);
         mEmptyLayout.setVisibility(View.VISIBLE);
@@ -143,12 +218,6 @@ public class H5Activity extends Activity {
             return true;
         }
         return false;
-    }
-
-    private void loadUrl(String url) {
-        if (null != mWebView) {
-            mWebView.loadUrl(url);
-        }
     }
 
     private void updateStatus() {
@@ -197,7 +266,9 @@ public class H5Activity extends Activity {
             if (mWebView.canGoBack() || mWebView.canGoForward()) {
                 mWebView.reload();
             } else {
-                loadH5();
+                if (sonicSession != null) {
+                    sonicSession.refresh();
+                }
             }
         }
     };
@@ -241,7 +312,9 @@ public class H5Activity extends Activity {
                 if (isErrorPageShowed()) {
                     mReceivedError = false;
                     if (!mWebView.canGoBack() && !mWebView.canGoForward()) {
-                        loadH5();
+                        if (sonicSession != null) {
+                            sonicSession.refresh();
+                        }
                         return;
                     }
                 }
@@ -255,7 +328,9 @@ public class H5Activity extends Activity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        loadH5();
+        if (sonicSession != null) {
+            sonicSession.refresh();
+        }
     }
 
     @Override
@@ -271,6 +346,10 @@ public class H5Activity extends Activity {
     @Override
     protected void onDestroy() {
         try {
+            if (null != sonicSession) {
+                sonicSession.destroy();
+                sonicSession = null;
+            }
             if (null != mWebView) {
                 mWebView.loadDataWithBaseURL(null, "", "text/html", "utf-8", null);
                 mWebView.clearHistory();
